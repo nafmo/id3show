@@ -2,7 +2,8 @@
  * $Id$
  * © 1998-1999 Peter Karlsson <pk@abc.se>
  *
- * This program is released under the GNU General Public License.
+ * This program is released under the GNU General Public License
+ * version 2.
  */
 
 #include <stdio.h>
@@ -32,27 +33,37 @@ char *genre[]= {"Blues", "Classic Rock", "Country", "Dance", "Disco",
                "Vocal", "Jazz+Funk", "Fusion", "Trance", "Classical",
                "Instrumental", "Acid", "House", "Game", "Sound Clip",
                "Gospel", "Noise", "AlternRock", "Bass", "Soul", "Punk",
-               "Space", "Meditative", "Instrumental Pop", "Instrumental Rock",
-               "Ethnic", "Gothic", "Darkwave", "Techno-Industrial",
-               "Electronic", "Pop-Folk", "Eurodance", "Dream", "Southern Rock",
-               "Comedy", "Cult", "Gangsta", "Top 40", "Christian Rap",
-               "Pop/Funk", "Jungle", "Native American", "Cabaret", "New Wave",
-               "Psychadelic", "Rave", "Showtunes", "Trailer", "Lo-Fi", "Tribal",
-               "Acid Punk", "Acid Jazz", "Polka", "Retro", "Musical",
-               "Rock & Roll", "Hard Rock", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-               ""};
+               "Space", "Meditative", "Instrumental Pop", "Instrumental
+               Rock", "Ethnic", "Gothic", "Darkwave", "Techno-Industrial",
+               "Electronic", "Pop-Folk", "Eurodance", "Dream", "Southern
+               Rock", "Comedy", "Cult", "Gangsta", "Top 40", "Christian
+               Rap", "Pop/Funk", "Jungle", "Native American", "Cabaret",
+               "New Wave", "Psychadelic", "Rave", "Showtunes", "Trailer",
+               "Lo-Fi", "Tribal", "Acid Punk", "Acid Jazz", "Polka",
+               "Retro", "Musical", "Rock & Roll", "Hard Rock", "Folk",
+               "Folk-Rock", "National folk", "Swing", "Fast fusion",
+               "Bebob", "Latin", "Revival", "Celtic", "Bluegrass",
+               "Avantgarde", "Gothic Rock", "Progressive Rock",
+               "Psychadelic Rock", "Symphonic Rock", "Slow Rock", "Big band",
+               "Chorus", "Easy listening", "Acoustic", "Humour", "Speech",
+               "Chanson", "Opera", "Chamber music", "Sonata", "Symphony",
+               "Booty bass", "Primus", "Porn groove", "Satire", "Slow jam",
+               "Club", "Tango", "Samba", "Folklore", "Ballad",
+               "Power ballad", "Rhythmic soul", "Freestyle", "Duet",
+               "Punk Rock", "Drum solo", "A Capella", "Euro-House",
+               "Dance hall", "Goa", "Drum & Bass", "Club-House", "Hardcore",
+               "Terror", "Indie", "BritPop", "Negerpunk", "Polsk Punk",
+               "Beat", "Christian Gangsta Rap", "Heavy Metal", "Black Metal",
+               "Crossover", "Contemporary Christian", "Christian Rock",
+               "Merengue", "Salsa", "Thrash Metal", "Anime", "JPop",
+               "Synthpop", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+               "", "", "", "", "", ""};
 
 void showid3(const char *, int, int);
 void strip(char *);
@@ -76,8 +87,9 @@ int main(int argc, char *argv[])
 	// Handle arguments
 	isshort = FALSE;
 	islist = FALSE;
+	ismv = FALSE;
 
-	while (EOF != (c = getopt(argc, argv, "sg")))
+	while (EOF != (c = getopt(argc, argv, "sgm")))
 	{
 		switch (c)
 		{
