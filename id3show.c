@@ -1,12 +1,17 @@
 /* id3show.c
  * $Id$
- * © 1998 Peter Karlsson
+ * © 1998-1999 Peter Karlsson <pk@abc.se>
  *
  * This program is released under the GNU General Public License.
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
+#include <unistd.h>
+
+#define FALSE	0
+#define TRUE	1
 
 typedef struct
 {
@@ -49,36 +54,81 @@ char *genre[]= {"Blues", "Classic Rock", "Country", "Dance", "Disco",
                "", "", "", "", "", "", "", "", "", "", "", "", "", "",
                ""};
 
-void showid3(const char *);
+void showid3(const char *, int, int);
 void strip(char *);
 
 int main(int argc, char *argv[])
 {
-	int i;
+	int	i, c, isshort, islist, ismv;
 
 	// Check if we need help
 	if (argc < 2 || !strcmp(argv[1], "--help"))
 	{
-		printf("Shows ID3 tags\nUsage: %s filenames\n", argv[0]);
+		printf("Shows ID3 tags\n"
+		       "Usage: %s [-s|-m] filenames\n"
+		       "       %s -g\n\n", argv[0], argv[0]);
+		puts("  -s   Short list format");
+		puts("  -m   Create renaming list");
+		puts("  -g   List genres");
+		return 0;
 	}
 
-	// Show ID3 tags of all files
-	for (i = 1; i < argc; i ++)
-		showid3(argv[i]);
+	// Handle arguments
+	isshort = FALSE;
+	islist = FALSE;
+
+	while (EOF != (c = getopt(argc, argv, "sg")))
+	{
+		switch (c)
+		{
+		case 's':
+			isshort = TRUE;
+			break;
+		case 'm':
+			ismv = TRUE;
+			break;
+		case 'g':
+			islist = TRUE;
+			break;
+		}
+	}
+
+	if (islist)
+	{
+		// List all ID3 genres
+		for (i = 0; i < 255; i ++)
+			if (genre[i][0])
+				printf("%3d: %s\n", i, genre[i]);
+	}
+	else
+	{
+		// Show ID3 tags of all files
+		for (i = optind; i < argc; i ++)
+			showid3(argv[i], isshort, ismv);
+	}
 }
 
 // showid3:
 //  shows ID3 tags
-void showid3(const char *filename)
+void showid3(const char *filename, int isshort, int ismv)
 {
 	FILE	*fp;
 	id3_t	tag;
+	int		i;
 
 	// Open file and retrieve ID3
 	fp = fopen(filename, "rb");
 	if (!fp) return;
-	fseek(fp, -sizeof(tag), SEEK_END);
-	fread(&tag, sizeof(tag), 1, fp);
+	if (-1 == fseek(fp, -sizeof(tag), SEEK_END))
+	{
+		fclose(fp);
+		return;
+	}
+	if (0 == fread(&tag, sizeof(tag), 1, fp))
+	{
+		fclose(fp);
+		return;
+	}
 	fclose(fp);
 	
 	// Check for integrity, and print info if it's okay
@@ -86,36 +136,95 @@ void showid3(const char *filename)
 	{
 		char	tmp[32] = {0};
 
-		puts(filename);
-		strncpy(tmp, tag.artist, 30);
-		strip(tmp);
-		if (!tmp[0]) strcpy(tmp, "Unknown artist");
-		printf(" %s - ", tmp);
-		
-		strncpy(tmp, tag.songname, 30);
-		strip(tmp);
-		if (!tmp[0]) strcpy(tmp, "Unknown title");
-		printf("%s\n", tmp);
+		if (ismv)
+		{
+			// mv output format:
+			// "mv filename artist-title.mp3"
+			strncpy(tmp, tag.artist, 30);
+			strip(tmp);
+			for (i = 0; i < strlen(tmp); i ++)
+			{
+				if (isalpha(tmp[i]))
+					tmp[i] = tolower(tmp[i]);
+				else if (' ' == tmp[i])
+					tmp[i] = '_';
+			}
+			printf("mv %s ", filename);
+			if (tmp[0]) printf("%s-", tmp);
+			else		fputs("unknown-", stdout);
 
-		strncpy(tmp, tag.album, 30);
-		strip(tmp);
-		if (!tmp[0]) strcpy(tmp, "Unknown album");
-		printf(" [%s", tmp);
-		
-		strncpy(tmp, tag.year, 4);
-		tmp[4] = 0;
-		strip(tmp);
-		if (tmp[0])
-			printf(" %s", tmp);
-		fputc(']', stdout);
-		fputc('\n', stdout);
-		
-		if (tag.genre < 80)
-			printf(" %s\n", genre[tag.genre]);
+			strncpy(tmp, tag.songname, 30);
+			strip(tmp);
+			for (i = 0; i < strlen(tmp); i ++)
+			{
+				if (isalpha(tmp[i]))
+					tmp[i] = tolower(tmp[i]);
+				else if (' ' == tmp[i])
+					tmp[i] = '_';
+			}
+			if (tmp[0]) printf("%s.mp3\n", tmp);
+			else		fputs("unknown.mp3\n", stdout);
+		}
+		else if (isshort)
+		{
+			// Short output format:
+			// "filename artist: title"
+			strncpy(tmp, tag.artist, 30);
+			strip(tmp);
+			printf("%s ", filename);
+			if (tmp[0]) printf("%s: ", tmp);
+			
+			strncpy(tmp, tag.songname, 30);
+			strip(tmp);
+			if (!tmp[0]) strcpy(tmp, "Unknown title");
+			printf("%s\n", tmp);
+		}
 		else
-			puts(" Unknown genre");
+		{
+			// Long output format:
+			// "filename
+			//  Artist - Title
+			//  [Album Year]
+			//  Genre"
 
-		fputc('\n', stdout);
+			// Filename
+			puts(filename);
+
+			// Artist
+ 			strncpy(tmp, tag.artist, 30);
+			strip(tmp);
+			if (!tmp[0]) strcpy(tmp, "Unknown artist");
+			printf(" %s - ", tmp);
+
+			// Song title
+			strncpy(tmp, tag.songname, 30);
+			strip(tmp);
+			if (!tmp[0]) strcpy(tmp, "Unknown title");
+			printf("%s\n", tmp);
+
+			// Album
+ 			strncpy(tmp, tag.album, 30);
+			strip(tmp);
+			if (!tmp[0]) strcpy(tmp, "Unknown album");
+			printf(" [%s", tmp);
+
+			// Year		
+			strncpy(tmp, tag.year, 4);
+			tmp[4] = 0;
+			strip(tmp);
+			if (tmp[0])
+				printf(" %s", tmp);
+			fputc(']', stdout);
+			fputc('\n', stdout);
+
+			// Genre
+			if (tag.genre < 80)
+				printf(" %s (%u)\n", genre[tag.genre], (unsigned) tag.genre);
+			else
+				printf(" Unknown genre (%u)\n", (unsigned) tag.genre);
+
+			fputc('\n', stdout);
+		}
 	}
 }
 
