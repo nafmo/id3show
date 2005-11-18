@@ -1,6 +1,6 @@
 /* id3show.c
  * $Id$
- * © 1998-1999 Peter Karlsson <pk@abc.se>
+ * © 1998-2005 Peter Karlsson <pk@abc.se>
  *
  * This program is released under the GNU General Public License
  * version 2.
@@ -162,7 +162,7 @@ void showid3(const char *filename, int isshort, int ismv)
 			int j;
 
 			// mv output format:
-			// "mv filename artist-title.mp3"
+			// "mv filename num-artist-title.mp3"
 			strncpy(tmp, tag.artist, 30);
 			strip(tmp);
 			j = 0;
@@ -181,9 +181,17 @@ void showid3(const char *filename, int isshort, int ismv)
 					tmp[j ++] = '_';
 			}
 			tmp[j] = 0;
-			printf("mv \"%s\" \"", filename);
+			printf("mv -i \"%s\" \"", filename);
 			if (0 == tag.v.n.null && tag.v.n.tracknum)
 				printf("%02u-", tag.v.n.tracknum);
+			else
+			{
+				int tracknum;
+				if (1 == sscanf(filename, "%d-", &tracknum))
+				{
+					printf("%02u-", tracknum);
+				}
+			}
 			if (tmp[0]) printf("%s-", tmp);
 			else		fputs("unknown-", stdout);
 
