@@ -20,8 +20,17 @@ typedef struct
 					songname[30],
 					artist[30],
 					album[30],
-					year[4],
-					comment[30];
+					year[4];
+	union
+	{
+		char		comment[30];
+		struct
+		{
+			char	comment[28];
+			char	null;
+			unsigned char tracknum;
+		} n;
+	} 				v;
 	unsigned char	genre;
 } id3_t;
 
@@ -150,32 +159,54 @@ void showid3(const char *filename, int isshort, int ismv)
 
 		if (ismv)
 		{
+			int j;
+
 			// mv output format:
 			// "mv filename artist-title.mp3"
 			strncpy(tmp, tag.artist, 30);
 			strip(tmp);
+			j = 0;
 			for (i = 0; i < strlen(tmp); i ++)
 			{
-				if (isalpha(tmp[i]))
-					tmp[i] = tolower(tmp[i]);
+				if ('å' == tmp[i] || 'Å' == tmp[i] ||
+				    'ä' == tmp[i] || 'Ä' == tmp[i])
+				    tmp[j ++] = 'a';
+				else if ('ö' == tmp[i] || 'Ö' == tmp[i])
+				    tmp[j ++] = 'o';
+				else if ('é' == tmp[i] || 'É' == tmp[i])
+				    tmp[j ++] = 'e';
+				else if (isalpha(tmp[i]))
+					tmp[j ++] = tolower(tmp[i]);
 				else if (' ' == tmp[i])
-					tmp[i] = '_';
+					tmp[j ++] = '_';
 			}
-			printf("mv %s ", filename);
+			tmp[j] = 0;
+			printf("mv \"%s\" \"", filename);
+			if (0 == tag.v.n.null && tag.v.n.tracknum)
+				printf("%02u-", tag.v.n.tracknum);
 			if (tmp[0]) printf("%s-", tmp);
 			else		fputs("unknown-", stdout);
 
 			strncpy(tmp, tag.songname, 30);
 			strip(tmp);
+			j = 0;
 			for (i = 0; i < strlen(tmp); i ++)
 			{
-				if (isalpha(tmp[i]))
-					tmp[i] = tolower(tmp[i]);
+				if ('å' == tmp[i] || 'Å' == tmp[i] ||
+				    'ä' == tmp[i] || 'Ä' == tmp[i])
+				    tmp[j ++] = 'a';
+				else if ('ö' == tmp[i] || 'Ö' == tmp[i])
+				    tmp[j ++] = 'o';
+				else if ('é' == tmp[i] || 'É' == tmp[i])
+				    tmp[j ++] = 'e';
+				else if (isalpha(tmp[i]))
+					tmp[j ++] = tolower(tmp[i]);
 				else if (' ' == tmp[i])
-					tmp[i] = '_';
+					tmp[j ++] = '_';
 			}
-			if (tmp[0]) printf("%s.mp3\n", tmp);
-			else		fputs("unknown.mp3\n", stdout);
+			tmp[j] = 0;
+			if (tmp[0]) printf("%s.mp3\"\n", tmp);
+			else		fputs("unknown.mp3\"\n", stdout);
 		}
 		else if (isshort)
 		{
