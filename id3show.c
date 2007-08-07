@@ -1,6 +1,6 @@
 /* id3show.c
  * $Id$
- * © 1998-2005 Peter Karlsson <pk@abc.se>
+ * © 1998-2007 Peter Karlsson <pk@abc.se>
  *
  * This program is released under the GNU General Public License
  * version 2.
@@ -177,6 +177,8 @@ void showid3(const char *filename, int isshort, int ismv)
 				    tmp[j ++] = 'e';
 				else if (isalpha(tmp[i]))
 					tmp[j ++] = tolower(tmp[i]);
+				else if (isdigit(tmp[i]))
+					tmp[j ++] = tmp[i];
 				else if (' ' == tmp[i])
 					tmp[j ++] = '_';
 			}
@@ -209,6 +211,8 @@ void showid3(const char *filename, int isshort, int ismv)
 				    tmp[j ++] = 'e';
 				else if (isalpha(tmp[i]))
 					tmp[j ++] = tolower(tmp[i]);
+				else if (isdigit(tmp[i]))
+					tmp[j ++] = tmp[i];
 				else if (' ' == tmp[i])
 					tmp[j ++] = '_';
 			}
