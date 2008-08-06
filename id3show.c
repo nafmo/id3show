@@ -1,6 +1,5 @@
 /* id3show.c
- * $Id$
- * © 1998-2007 Peter Karlsson <pk@abc.se>
+ * © 1998-2008 Peter Krefting <peter@softwolves.pp.se>
  *
  * This program is released under the GNU General Public License
  * version 2.
