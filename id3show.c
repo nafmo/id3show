@@ -1,5 +1,5 @@
 /* id3show.c
- * © 1998-2008 Peter Krefting <peter@softwolves.pp.se>
+ * © 1998-2010 Peter Krefting <peter@softwolves.pp.se>
  *
  * This program is released under the GNU General Public License
  * version 2.
@@ -74,6 +74,7 @@ char *genre[]= {"Blues", "Classic Rock", "Country", "Dance", "Disco",
                "", "", "", "", "", ""};
 
 void showid3(const char *, int, int);
+void showid3v1(FILE *, const char *, int, int);
 void strip(char *);
 
 int main(int argc, char *argv[])
@@ -133,24 +134,32 @@ int main(int argc, char *argv[])
 void showid3(const char *filename, int isshort, int ismv)
 {
 	FILE	*fp;
-	id3_t	tag;
-	int		i;
 
 	// Open file and retrieve ID3
 	fp = fopen(filename, "rb");
+
+	showid3v1(fp, filename, isshort, ismv);
+	fclose(fp);
+}
+
+// showid3v1:
+//  shows an ID3v1 tag
+void showid3v1(FILE *fp, const char *filename, int isshort, int ismv)
+{
+	id3_t	tag;
+	int		i;
+
+	// Retrieve ID3v1 from the end of the file
 	if (!fp) return;
 	if (-1 == fseek(fp, -sizeof(tag), SEEK_END))
 	{
-		fclose(fp);
 		return;
 	}
 	if (0 == fread(&tag, sizeof(tag), 1, fp))
 	{
-		fclose(fp);
 		return;
 	}
-	fclose(fp);
-	
+
 	// Check for integrity, and print info if it's okay
 	if ('T' == tag.tag[0] && 'A' == tag.tag[1] && 'G' == tag.tag[2])
 	{
