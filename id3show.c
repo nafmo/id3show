@@ -99,8 +99,9 @@ char *genre[]= {"Blues", "Classic Rock", "Country", "Dance", "Disco",
                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
                "", "", "", "", "", ""};
 
-void showid3(const char *, int, int);
-void showid3v1(FILE *, const char *, int, int);
+void showid3(const char *, int, int, int);
+void showbare (const char *, int, int);
+int showid3v1(FILE *, const char *, int, int);
 int showid3v2(FILE *, const char *, int, int);
 void strip(char *);
 uint32_t decode_safe(uint32_t);
@@ -108,14 +109,15 @@ void id3v2_get_text_data(char *, size_t, uint32_t, FILE *);
 
 int main(int argc, char *argv[])
 {
-	int	i, c, isshort, islist, ismv;
+	int	i, c, showall, isshort, islist, ismv;
 
 	// Check if we need help
 	if (argc < 2 || !strcmp(argv[1], "--help"))
 	{
 		printf("Shows ID3 tags\n"
-		       "Usage: %s [-s|-m] filenames\n"
+		       "Usage: %s [-a] [-s|-m] filenames\n"
 		       "       %s -g\n\n", argv[0], argv[0]);
+		puts("  -a   List untagged files");
 		puts("  -s   Short list format");
 		puts("  -m   Create renaming list");
 		puts("  -g   List genres");
@@ -123,14 +125,18 @@ int main(int argc, char *argv[])
 	}
 
 	// Handle arguments
+	showall = FALSE;
 	isshort = FALSE;
 	islist = FALSE;
 	ismv = FALSE;
 
-	while (EOF != (c = getopt(argc, argv, "sgm")))
+	while (EOF != (c = getopt(argc, argv, "asgm")))
 	{
 		switch (c)
 		{
+		case 'a':
+			showall = TRUE;
+			break;
 		case 's':
 			isshort = TRUE;
 			break;
@@ -154,13 +160,13 @@ int main(int argc, char *argv[])
 	{
 		// Show ID3 tags of all files
 		for (i = optind; i < argc; i ++)
-			showid3(argv[i], isshort, ismv);
+			showid3(argv[i], showall, isshort, ismv);
 	}
 }
 
 // showid3:
 //  shows ID3 tags
-void showid3(const char *filename, int isshort, int ismv)
+void showid3(const char *filename, int showall, int isshort, int ismv)
 {
 	FILE	*fp;
 
@@ -168,13 +174,45 @@ void showid3(const char *filename, int isshort, int ismv)
 	fp = fopen(filename, "rb");
 
 	if (!showid3v2(fp, filename, isshort, ismv))
-		showid3v1(fp, filename, isshort, ismv);
+		if (!showid3v1(fp, filename, isshort, ismv))
+			if (showall)
+				showbare(filename, isshort, ismv);
 	fclose(fp);
+}
+
+// showbare:
+//  Show info about an untagged file
+void showbare(const char *filename, int isshort, int ismv)
+{
+	if (ismv)
+	{
+		// mv output format:
+		// "# mv filename unknown.mp3"
+		printf("# mv -i \"%s\" unknown.mp3\n", filename);
+	}
+	else if (isshort)
+	{
+		// Short output format:
+		// "filename artist: title"
+		printf("%s Unknown title\n", filename);
+	}
+	else
+	{
+		// Long output format:
+		// "filename
+		//  Artist - Title
+		//  [Album Year]
+		//  Genre"
+		printf("%s\n"
+		       " Unknown artist - Unknown title\n"
+		       " [Unknown album]\n"
+		       " Unknown genre\n\n", filename);
+	}
 }
 
 // showid3v1:
 //  shows an ID3v1 tag
-void showid3v1(FILE *fp, const char *filename, int isshort, int ismv)
+int showid3v1(FILE *fp, const char *filename, int isshort, int ismv)
 {
 	id3_t	tag;
 	int		i;
@@ -183,11 +221,11 @@ void showid3v1(FILE *fp, const char *filename, int isshort, int ismv)
 	if (!fp) return;
 	if (-1 == fseek(fp, -sizeof(tag), SEEK_END))
 	{
-		return;
+		return 0;
 	}
 	if (0 == fread(&tag, sizeof(tag), 1, fp))
 	{
-		return;
+		return 0;
 	}
 
 	// Check for integrity, and print info if it's okay
@@ -318,7 +356,10 @@ void showid3v1(FILE *fp, const char *filename, int isshort, int ismv)
 
 			fputc('\n', stdout);
 		}
+		return 1;
 	}
+
+	return 0;
 }
 
 // showid3v2:
