@@ -1,5 +1,5 @@
 /* id3show.c
- * © 1998-2010 Peter Krefting <peter@softwolves.pp.se>
+ * © 1998-2022 Peter Krefting <peter@softwolves.pp.se>
  *
  * This program is released under the GNU General Public License
  * version 2.
@@ -50,7 +50,7 @@ typedef struct
 {
 	char			frame_id[4];
 	uint32_t		safe_len;
-	uint16_t		flags[2];
+	uint8_t			flags[2];
 } id3v2_3_frame_t;
 
 typedef struct
