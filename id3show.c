@@ -687,11 +687,19 @@ void strip(char *s)
 uint32_t decode_safe(uint32_t safeint)
 {
 	// Synchsafe integers have seven bits of data per byte
+	// and are stored in MSB order
 	uint32_t decoded =
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+		 (safeint & 0x7F) |
+		((safeint & 0x7F00) >> 1) |
+		((safeint & 0x7F0000) >> 2) |
+		((safeint & 0x7F000000) >> 3);
+#else
 		((safeint & 0x7F) << 21) |
 		((safeint & 0x7F00) << 6) |
 		((safeint & 0x7F0000) >> 9) |
 		((safeint & 0x7F000000) >> 24);
+#endif
 	// FIXME: Not endian safe :-)
 //printf("# decode_safe(%04x) => %04x\n", safeint, decoded);
 	return decoded;
