@@ -218,7 +218,7 @@ int showid3v1(FILE *fp, const char *filename, int isshort, int ismv)
 	int		i;
 
 	// Retrieve ID3v1 from the end of the file
-	if (!fp) return;
+	if (!fp) return 0;
 	if (-1 == fseek(fp, -sizeof(tag), SEEK_END))
 	{
 		return 0;
